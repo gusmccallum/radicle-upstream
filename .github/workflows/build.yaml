@@ -7,7 +7,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: "gcr.io/radicle-upstream/radicle-upstream-ci:14"
+      image: "gcr.io/radicle-upstream/radicle-upstream-ci:15"
     steps:
       - uses: actions/checkout@master
       - name: Cache Yarn

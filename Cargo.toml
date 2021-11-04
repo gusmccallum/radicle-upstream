@@ -64,4 +64,3 @@ branch = "generic-agent"
 [patch.crates-io.radicle-keystore]
 git = "https://github.com/radicle-dev/radicle-keystore"
 rev = "00f8fb6135f8e4cd097a48e6f0700e08ce4abb04"
-features = [ "ssh-agent" ]

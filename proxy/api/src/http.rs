@@ -23,11 +23,11 @@ mod project;
 mod session;
 mod source;
 
-/// Helper to combine the multiple filters together with Filter::or, possibly boxing the types in
-/// the process.
+/// Helper to combine the multiple filters together with [`Filter::or`], possibly boxing the types
+/// in the process.
 ///
-/// https://github.com/seanmonstar/warp/issues/507#issuecomment-615974062
-/// https://github.com/rs-ipfs/rust-ipfs/commit/ae3306686209afa5911b1ad02170c1ac3bacda7c
+/// <https://github.com/seanmonstar/warp/issues/507#issuecomment-615974062>
+/// <https://github.com/rs-ipfs/rust-ipfs/commit/ae3306686209afa5911b1ad02170c1ac3bacda7c>
 macro_rules! combine {
     ($x:expr, $($y:expr),+) => {
         {
