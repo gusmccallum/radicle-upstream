@@ -121,5 +121,5 @@
       {/if}
     </div>
   </div>
-  <History history={commits} on:select={event => selectCommit(event.detail)} />
+  <History history={commits} onClickCommit={selectCommit} />
 </div>

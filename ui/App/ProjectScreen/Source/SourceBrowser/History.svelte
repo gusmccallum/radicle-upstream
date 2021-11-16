@@ -6,18 +6,12 @@
  LICENSE file.
 -->
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-
   import type { CommitHeader, GroupedCommitsHistory } from "ui/src/source";
 
   import CommitTeaser from "ui/App/SharedComponents/CommitTeaser.svelte";
 
   export let history: GroupedCommitsHistory;
-
-  const dispatch = createEventDispatcher();
-  const onSelect = (commit: CommitHeader) => {
-    dispatch("select", commit);
-  };
+  export let onClickCommit: (commit: CommitHeader) => void;
 </script>
 
 <style>
@@ -60,7 +54,10 @@
       </header>
       <ul>
         {#each group.commits as commit (commit.sha1)}
-          <li class="commit" data-cy="commit" on:click={() => onSelect(commit)}>
+          <li
+            class="commit"
+            data-cy="commit"
+            on:click={() => onClickCommit(commit)}>
             <CommitTeaser
               {commit}
               style="background: none; --commit-message-color:
