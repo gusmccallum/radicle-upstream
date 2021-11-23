@@ -66,28 +66,30 @@ log-group-start "cargo test"
 )
 log-group-end
 
-log-group-start "eslint"
-time yarn lint
-log-group-end
+# log-group-start "eslint"
+# time yarn lint
+# log-group-end
 
-log-group-start "prettier"
-time yarn prettier:check
-log-group-end
+# log-group-start "prettier"
+# time yarn prettier:check
+# log-group-end
 
-log-group-start "Check TypeScript"
-time yarn typescript:check
-log-group-end
+# log-group-start "Check TypeScript"
+# time yarn typescript:check
+# log-group-end
 
-log-group-start "Bundle electron main files"
-time yarn run webpack --config-name main
-log-group-end
+# log-group-start "Bundle electron main files"
+# time yarn run webpack --config-name main
+# log-group-end
 
-log-group-start "Starting proxy daemon and runing app tests"
-# We modify the output of the tests to add log groups to the cypress
-# tests.
-time FORCE_COLOR=1 ELECTRON_ENABLE_LOGGING=1 yarn test |
-  sed "
-    s/^\\s*Running:/$(log-group-end)\n$(log-group-start)Running:/
-    s/^.*Run Finished.*/$(log-group-end)\n$(log-group-start)Run Finished/
-  "
-log-group-end
+# log-group-start "Starting proxy daemon and runing app tests"
+# # We modify the output of the tests to add log groups to the cypress
+# # tests.
+# time FORCE_COLOR=1 ELECTRON_ENABLE_LOGGING=1 yarn test |
+#   sed "
+#     s/^\\s*Running:/$(log-group-end)\n$(log-group-start)Running:/
+#     s/^.*Run Finished.*/$(log-group-end)\n$(log-group-start)Run Finished/
+#   "
+# log-group-end
+
+clean-cargo-build-artifacts

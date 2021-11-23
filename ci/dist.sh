@@ -31,3 +31,5 @@ target="$(uname -m)-$(uname -s | tr "[:upper:]" "[:lower:]")"
 mkdir "dist/${target}"
 cp target/release/upstream-seed "dist/${target}/upstream-seed"
 log-group-end
+
+clean-cargo-build-artifacts

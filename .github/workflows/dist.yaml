@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - main
+    - "**"
     - release-candidate/**
 
 jobs:
@@ -34,7 +35,7 @@ jobs:
             ./target/*/deps
             ./target/*/build
             ./target/*/.fingerprint
-          key: ${{ github.job }}-${{ runner.os }}-rust-v3-${{ hashFiles('Cargo.lock') }}
+          key: ${{ github.job }}-${{ runner.os }}-rust-v5-${{ hashFiles('Cargo.lock') }}
       - run: ci/dist.sh
       - uses: actions/upload-artifact@v2
         with:
