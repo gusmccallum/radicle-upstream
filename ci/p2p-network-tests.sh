@@ -18,8 +18,12 @@ log-group-start "cargo build"
 cargo build --all --all-features --all-targets
 log-group-end
 
-log-group-start "Run p2p networking tests"
+log-group-start "Maintainer update propagation without stopping peers"
 # The -E option is necessary because the script depents on GITHUB_ env variables
 # which otherwise wouldn't be forwarded.
 time sudo -E FORCE_COLOR=1 ./p2p-tests/maintainer-update-propagation-test.ts
+log-group-end
+
+log-group-start "Maintainer update propagation with stopping peers between steps"
+time sudo -E FORCE_COLOR=1 ./p2p-tests/maintainer-update-propagation-variation-1-test.ts
 log-group-end

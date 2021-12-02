@@ -14,6 +14,7 @@ import { strict as strictAssert } from "assert";
 
 import {
   commit,
+  gracefullyStopProcess,
   keyPath,
   killProcesses,
   p2pTestPath,
@@ -27,21 +28,7 @@ import {
 const processes: execa.ExecaChildProcess[] = [];
 
 async function runTestcase() {
-  const seed = startSeed(
-    "seed",
-    [
-      "--identity-key",
-      keyPath(
-        "seed-hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy.key"
-      ),
-      "--project",
-      "rad:git:hnrkrhhs1goaawo7db1gpyct8hd7mif5q8c3o",
-    ],
-    true
-  );
-  processes.push(seed);
-
-  const maintainer = startPeer(
+  let maintainer = startPeer(
     "maintainer",
     "10.0.0.101",
     [
@@ -54,23 +41,6 @@ async function runTestcase() {
   );
   processes.push(maintainer.childProcess);
 
-  const contributor = startPeer(
-    "contributor",
-    "10.0.0.102",
-    [
-      "--key-passphrase",
-      "contributor",
-      "--seed",
-      "hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy@10.0.0.1:8776",
-    ],
-    true
-  );
-  processes.push(contributor.childProcess);
-
-  // This single sleep between starting the nodes and issuing commands reduces
-  // the test failure rate drastically.
-  await sleep(1000);
-
   await withRetry(async () => {
     await maintainer.proxyClient.project.create({
       repo: {
@@ -82,6 +52,53 @@ async function runTestcase() {
       defaultBranch: "main",
     });
   });
+
+  await gracefullyStopProcess(maintainer.childProcess);
+
+  const seed = startSeed(
+    "seed",
+    [
+      "--identity-key",
+      keyPath(
+        "seed-hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy.key"
+      ),
+      "--project",
+      "rad:git:hnrkrhhs1goaawo7db1gpyct8hd7mif5q8c3o",
+    ],
+    true
+  );
+
+  processes.push(seed);
+
+  maintainer = startPeer(
+    "maintainer",
+    "10.0.0.101",
+    [
+      "--key-passphrase",
+      "maintainer",
+      "--seed",
+      "hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy@10.0.0.1:8776",
+    ],
+    false
+  );
+
+  // Wait for seed to replicate project.
+  await sleep(1000);
+
+  await gracefullyStopProcess(maintainer.childProcess);
+
+  let contributor = startPeer(
+    "contributor",
+    "10.0.0.102",
+    [
+      "--key-passphrase",
+      "contributor",
+      "--seed",
+      "hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy@10.0.0.1:8776",
+    ],
+    true
+  );
+  processes.push(contributor.childProcess);
 
   await withRetry(async () => {
     await contributor.proxyClient.project.requestSubmit(
@@ -106,6 +123,21 @@ async function runTestcase() {
     });
   });
 
+  await gracefullyStopProcess(contributor.childProcess);
+
+  maintainer = startPeer(
+    "maintainer",
+    "10.0.0.101",
+    [
+      "--key-passphrase",
+      "maintainer",
+      "--seed",
+      "hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy@10.0.0.1:8776",
+    ],
+    false
+  );
+  processes.push(maintainer.childProcess);
+
   commit(
     "maintainer",
     workspacePath(["maintainer", "project-checkouts", "my-fancy-project"])
@@ -116,6 +148,24 @@ async function runTestcase() {
     workspacePath(["maintainer", "project-checkouts", "my-fancy-project"]),
     "maintainer"
   );
+
+  // Wait for maintainer to replicate commit to seed.
+  await sleep(1000);
+
+  await gracefullyStopProcess(maintainer.childProcess);
+
+  contributor = startPeer(
+    "contributor",
+    "10.0.0.102",
+    [
+      "--key-passphrase",
+      "contributor",
+      "--seed",
+      "hybfoqx9wrdjhnr9jyb74zpduph57z99f67bjgfnsf83p1rk7z1diy@10.0.0.1:8776",
+    ],
+    false
+  );
+  processes.push(contributor.childProcess);
 
   await withRetry(async () => {
     const commitList = await contributor.proxyClient.source.commitsGet({

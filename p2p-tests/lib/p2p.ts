@@ -41,10 +41,24 @@ const ROOT_PATH = path.join(__dirname, "..", "..");
 const P2P_TEST_PATH = path.join(ROOT_PATH, "p2p-tests");
 const BIN_PATH = path.join(ROOT_PATH, "target", "debug");
 
-const processes: execa.ExecaChildProcess[] = [];
+export async function killProcesses(
+  processes: execa.ExecaChildProcess[]
+): Promise<void> {
+  for (const proc of processes) {
+    try {
+      proc.kill("SIGKILL");
+      await proc;
+    } catch {
+      // Ignore errors.
+    }
+  }
+}
 
-export function stopProcesses(): void {
-  processes.forEach(node => node.kill("SIGKILL"));
+export async function gracefullyStopProcess(
+  proc: execa.ExecaChildProcess
+): Promise<void> {
+  proc.kill("SIGTERM");
+  await proc;
 }
 
 export function workspacePath(paths: string[] = []): string {
@@ -121,9 +135,15 @@ export function initPeer(namespace: string): void {
 export function startPeer(
   namespace: string,
   ip: string,
-  args: string[]
-): ProxyClient.ProxyClient {
-  initPeer(namespace);
+  args: string[],
+  init: boolean
+): {
+  childProcess: execa.ExecaChildProcess;
+  proxyClient: ProxyClient.ProxyClient;
+} {
+  if (init) {
+    initPeer(namespace);
+  }
 
   const childProcess = spawnInNamespace(
     namespace,
@@ -144,15 +164,22 @@ export function startPeer(
     }
   );
 
-  processes.push(childProcess);
-
-  return new ProxyClient.ProxyClient(`http://${ip}:17246`);
+  return {
+    childProcess,
+    proxyClient: new ProxyClient.ProxyClient(`http://${ip}:17246`),
+  };
 }
 
-export function startSeed(namespace: string, args: string[]): void {
+export function startSeed(
+  namespace: string,
+  args: string[],
+  init: boolean
+): execa.ExecaChildProcess {
   const radHome = workspacePath([namespace]);
-  fs.removeSync(radHome);
-  fs.mkdirsSync(radHome);
+  if (init) {
+    fs.removeSync(radHome);
+    fs.mkdirsSync(radHome);
+  }
 
   const childProcess = spawnInNamespace(
     namespace,
@@ -160,7 +187,7 @@ export function startSeed(namespace: string, args: string[]): void {
     {}
   );
 
-  processes.push(childProcess);
+  return childProcess;
 }
 
 export function spawnInNamespace(
